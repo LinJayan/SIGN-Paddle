@@ -19,6 +19,9 @@ python main.py  --dataset ml-tag # --dataset [data-path]
 
 ### **部分训练日志**
 ```
+[INFO] 2022-02-15 12:27:27,238 [  dataset.py:  129]:    loading data from ./data/ml-tag/ml-tag.data
+100%|████████████████████████████████████████████████████████████████████████████████| 2006859/2006859 [01:00<00:00, 33296.96it/s]
+[INFO] 2022-02-15 12:29:00,628 [  dataset.py:  263]:    Finished loading data
 [INFO] 2022-02-15 12:29:00,628 [  dataset.py:  263]:    Finished loading data
 
                 num_graph:2006859
