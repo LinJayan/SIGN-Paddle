@@ -1,3 +1,2 @@
-scikit-learn==0.22.1
-pgl==2.1.5 
+pgl==2.2.2
 paddlepaddle>=2.1.0
