@@ -1,38 +1,25 @@
-[INFO] 2021-12-12 16:55:22,410 [  dataset.py:  129]:    loading data from ./data/frappe/frappe.data
-100%|████████████████████████████████████████████████████████████████████████████████████████████| 288609/288609 [00:14<00:00, 19477.16it/s]
-[INFO] 2021-12-12 16:55:58,168 [  dataset.py:  251]:    Finished loading data
+[INFO] 2022-02-15 12:27:27,238 [  dataset.py:  129]:    loading data from ./data/ml-tag/ml-tag.data
+100%|████████████████████████████████████████████████████████████████████████████████| 2006859/2006859 [01:00<00:00, 33296.96it/s]
+[INFO] 2022-02-15 12:29:00,628 [  dataset.py:  263]:    Finished loading data
 
-                num_graph:288609
-                num_feature:5382
-                nodes/graph:10
-                num_edges:15873495
+                num_graph:2006859
+                num_feature:90445
+                nodes/graph:3
+                num_edges:12041154
                 
-[INFO] 2021-12-12 16:55:58,558 [  dataset.py:   65]:    train_set : valid_set : test_set = 202026 : 43292: 43291
+[INFO] 2022-02-15 12:29:02,437 [  dataset.py:   65]:    train_set : valid_set : test_set = 1404801 : 301029: 301029
 
-datast: twitter
+datast: ml-tag
 vector dim: 8
 batch_size: 1024
 lr: 0.05
-[INFO] 2021-12-12 16:55:58,581 [    train.py:   46]:    start training...
-[INFO] 2021-12-12 16:56:51,294 [    train.py:   82]:    Epoch: 000, Loss: 0.2102, Train Auc: 0.9478,Train Acc: 0.8897,Train edges: 11111173, Val Auc: 0.9373, Acc: 0.8892, Test Auc: 0.9373, Acc: 0.8884, Train edges: 2380957
-[INFO] 2021-12-12 16:57:43,543 [    train.py:   82]:    Epoch: 001, Loss: 0.1419, Train Auc: 0.9598,Train Acc: 0.9079,Train edges: 11111395, Val Auc: 0.9463, Acc: 0.9028, Test Auc: 0.9467, Acc: 0.9045, Train edges: 2380998
-[INFO] 2021-12-12 16:58:36,866 [    train.py:   82]:    Epoch: 002, Loss: 0.1219, Train Auc: 0.9670,Train Acc: 0.9146,Train edges: 11111427, Val Auc: 0.9516, Acc: 0.9093, Test Auc: 0.9519, Acc: 0.9095, Train edges: 2381003
-[INFO] 2021-12-12 16:59:29,419 [    train.py:   82]:    Epoch: 003, Loss: 0.1098, Train Auc: 0.9724,Train Acc: 0.9287,Train edges: 11111430, Val Auc: 0.9559, Acc: 0.9181, Test Auc: 0.9565, Acc: 0.9196, Train edges: 2381004
-[INFO] 2021-12-12 17:00:21,711 [    train.py:   82]:    Epoch: 004, Loss: 0.1013, Train Auc: 0.9759,Train Acc: 0.9331,Train edges: 11111429, Val Auc: 0.9584, Acc: 0.9225, Test Auc: 0.9591, Acc: 0.9227, Train edges: 2381005
-[INFO] 2021-12-12 17:01:15,090 [    train.py:   82]:    Epoch: 005, Loss: 0.0954, Train Auc: 0.9780,Train Acc: 0.9338,Train edges: 11111429, Val Auc: 0.9597, Acc: 0.9235, Test Auc: 0.9604, Acc: 0.9241, Train edges: 2381005
-[INFO] 2021-12-12 17:02:07,929 [    train.py:   82]:    Epoch: 006, Loss: 0.0904, Train Auc: 0.9801,Train Acc: 0.9400,Train edges: 11111429, Val Auc: 0.9610, Acc: 0.9263, Test Auc: 0.9619, Acc: 0.9270, Train edges: 2381005
-[INFO] 2021-12-12 17:03:00,761 [    train.py:   82]:    Epoch: 007, Loss: 0.0862, Train Auc: 0.9814,Train Acc: 0.9437,Train edges: 11111428, Val Auc: 0.9619, Acc: 0.9277, Test Auc: 0.9629, Acc: 0.9290, Train edges: 2381005
-[INFO] 2021-12-12 17:03:52,160 [    train.py:   82]:    Epoch: 008, Loss: 0.0828, Train Auc: 0.9825,Train Acc: 0.9445,Train edges: 11111430, Val Auc: 0.9623, Acc: 0.9291, Test Auc: 0.9634, Acc: 0.9300, Train edges: 2381005
-[INFO] 2021-12-12 17:04:44,923 [    train.py:   82]:    Epoch: 009, Loss: 0.0803, Train Auc: 0.9833,Train Acc: 0.9475,Train edges: 11111430, Val Auc: 0.9628, Acc: 0.9293, Test Auc: 0.9639, Acc: 0.9312, Train edges: 2381005
-[INFO] 2021-12-12 17:05:38,448 [    train.py:   82]:    Epoch: 010, Loss: 0.0777, Train Auc: 0.9844,Train Acc: 0.9492,Train edges: 11111430, Val Auc: 0.9634, Acc: 0.9319, Test Auc: 0.9644, Acc: 0.9326, Train edges: 2381005
-[INFO] 2021-12-12 17:06:31,229 [    train.py:   82]:    Epoch: 011, Loss: 0.0756, Train Auc: 0.9851,Train Acc: 0.9503,Train edges: 11111430, Val Auc: 0.9636, Acc: 0.9307, Test Auc: 0.9650, Acc: 0.9326, Train edges: 2381005
-[INFO] 2021-12-12 17:07:24,005 [    train.py:   82]:    Epoch: 012, Loss: 0.0736, Train Auc: 0.9860,Train Acc: 0.9502,Train edges: 11111430, Val Auc: 0.9638, Acc: 0.9322, Test Auc: 0.9650, Acc: 0.9328, Train edges: 2381005
-[INFO] 2021-12-12 17:08:16,537 [    train.py:   82]:    Epoch: 013, Loss: 0.0716, Train Auc: 0.9865,Train Acc: 0.9532,Train edges: 11111430, Val Auc: 0.9643, Acc: 0.9336, Test Auc: 0.9654, Acc: 0.9345, Train edges: 2381005
-[INFO] 2021-12-12 17:09:09,114 [    train.py:   82]:    Epoch: 014, Loss: 0.0702, Train Auc: 0.9870,Train Acc: 0.9542,Train edges: 11111430, Val Auc: 0.9640, Acc: 0.9339, Test Auc: 0.9654, Acc: 0.9348, Train edges: 2381005
-[INFO] 2021-12-12 17:10:02,164 [    train.py:   82]:    Epoch: 015, Loss: 0.0689, Train Auc: 0.9871,Train Acc: 0.9538,Train edges: 11111430, Val Auc: 0.9644, Acc: 0.9323, Test Auc: 0.9656, Acc: 0.9338, Train edges: 2381005
-[INFO] 2021-12-12 17:10:55,619 [    train.py:   82]:    Epoch: 016, Loss: 0.0674, Train Auc: 0.9875,Train Acc: 0.9545,Train edges: 11111430, Val Auc: 0.9648, Acc: 0.9330, Test Auc: 0.9659, Acc: 0.9341, Train edges: 2381005
-[INFO] 2021-12-12 17:11:49,229 [    train.py:   82]:    Epoch: 017, Loss: 0.0661, Train Auc: 0.9882,Train Acc: 0.9554,Train edges: 11111430, Val Auc: 0.9648, Acc: 0.9329, Test Auc: 0.9660, Acc: 0.9338, Train edges: 2381005
-[INFO] 2021-12-12 17:12:43,249 [    train.py:   82]:    Epoch: 018, Loss: 0.0650, Train Auc: 0.9886,Train Acc: 0.9570,Train edges: 11111430, Val Auc: 0.9652, Acc: 0.9355, Test Auc: 0.9662, Acc: 0.9358, Train edges: 2381005
-[INFO] 2021-12-12 17:13:36,986 [    train.py:   82]:    Epoch: 019, Loss: 0.0639, Train Auc: 0.9890,Train Acc: 0.9576,Train edges: 11111430, Val Auc: 0.9653, Acc: 0.9353, Test Auc: 0.9664, Acc: 0.9356, Train edges: 2381005
-[INFO] 2021-12-12 17:14:29,583 [    train.py:   82]:    Epoch: 020, Loss: 0.0631, Train Auc: 0.9895,Train Acc: 0.9582,Train edges: 11111430, Val Auc: 0.9654, Acc: 0.9365, Test Auc: 0.9664, Acc: 0.9363, Train edges: 2381005
-[INFO] 2021-12-12 17:15:21,857 [    train.py:   82]:    Epoch: 021, Loss: 0.0621, Train Auc: 0.9897,Train Acc: 0.9588,Train edges: 11111430, Val Auc: 0.9654, Acc: 0.9358, Test Auc: 0.9663, Acc: 0.9359, Train edges: 2381005
+
+[INFO] 2022-02-15 12:29:02,602 [    train.py:   46]:    start training...
+[INFO] 2022-02-15 12:31:45,725 [    train.py:   98]:    Epoch: 000, Loss: 0.1501, Train Auc: 0.9247,Train Acc: 0.8943,Train edges: 8428799, Val Auc: 0.9151, Acc: 0.8899, Test Auc: 0.9158, Acc: 0.8910, Train edges: 1806172
+[INFO] 2022-02-15 12:34:32,008 [    train.py:   98]:    Epoch: 001, Loss: 0.1077, Train Auc: 0.9429,Train Acc: 0.9026,Train edges: 8428803, Val Auc: 0.9295, Acc: 0.8950, Test Auc: 0.9301, Acc: 0.8960, Train edges: 1806173
+[INFO] 2022-02-15 12:37:17,265 [    train.py:   98]:    Epoch: 002, Loss: 0.0961, Train Auc: 0.9537,Train Acc: 0.9114,Train edges: 8428804, Val Auc: 0.9358, Acc: 0.9005, Test Auc: 0.9365, Acc: 0.9009, Train edges: 1806172
+[INFO] 2022-02-15 12:39:59,226 [    train.py:   98]:    Epoch: 003, Loss: 0.0883, Train Auc: 0.9616,Train Acc: 0.9183,Train edges: 8428805, Val Auc: 0.9392, Acc: 0.9034, Test Auc: 0.9401, Acc: 0.9039, Train edges: 1806174
+[INFO] 2022-02-15 12:42:41,809 [    train.py:   98]:    Epoch: 004, Loss: 0.0819, Train Auc: 0.9674,Train Acc: 0.9244,Train edges: 8428804, Val Auc: 0.9415, Acc: 0.9057, Test Auc: 0.9420, Acc: 0.9065, Train edges: 1806174
+[INFO] 2022-02-15 12:45:26,478 [    train.py:   98]:    Epoch: 005, Loss: 0.0764, Train Auc: 0.9717,Train Acc: 0.9304,Train edges: 8428806, Val Auc: 0.9423, Acc: 0.9076, Test Auc: 0.9431, Acc: 0.9084, Train edges: 1806174
+[INFO] 2022-02-15 12:48:10,314 [    train.py:   98]:    Epoch: 006, Loss: 0.0716, Train Auc: 0.9751,Train Acc: 0.9350,Train edges: 8428805, Val Auc: 0.9424, Acc: 0.9088, Test Auc: 0.9433, Acc: 0.9098, Train edges: 1806174
+[INFO] 2022-02-15 12:50:54,072 [    train.py:   98]:    Epoch: 007, Loss: 0.0676, Train Auc: 0.9779,Train Acc: 0.9391,Train edges: 8428805, Val Auc: 0.9420, Acc: 0.9100, Test Auc: 0.9427, Acc: 0.9103, Train edges: 1806174
