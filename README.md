@@ -2,11 +2,10 @@
 
 ### **快速开始**
 ```
-# GPU训练
-python main.py --device gpu --dataset ml-tag  # --dataset [data-path]
-
-# CPU训练
+# 训练
 python main.py  --dataset ml-tag # --dataset [data-path]
 ```
+
+
 
 未完结...
