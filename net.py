@@ -26,6 +26,8 @@ import pgl
 from pgl.nn import pool 
 from pgl.utils.logger import log
 
+from pgl.graph import Graph
+
 
 
 class L0_SIGN(nn.Layer):
@@ -42,11 +44,14 @@ class L0_SIGN(nn.Layer):
         if self.pred_edges:
             self.linkpred = LinkPred(self.dim, self.hidden_layer, self.n_feature,  self.l0_para)
 
-        self.sign = SIGN(self.dim, self.hidden_layer)
+        self.sign = SIGN(self.dim, self.hidden_layer, self.pred_edges)
+       
         self.g = nn.Linear(self.dim, 2)  #2 is the class dimention 
         self.add_sublayer("g",self.g)
         
         self.feature_emb = nn.Embedding(self.n_feature, self.dim)
+
+        self.graph_pooling = pgl.nn.GraphPool(pool_type='MEAN')
 
 
     def forward(self, graph, is_training=True):
@@ -58,44 +63,46 @@ class L0_SIGN(nn.Layer):
 
         x, edge_index, sr = graph.node_feat['node_attr'], graph.edges, graph.edge_feat['edge_attr']
         segment_ids = graph.graph_node_id
+
+        
         x = self.feature_emb(x)
         x = x.squeeze(1)
+
+        graph.node_feat['node_attr'] = x
+        
 
         if self.pred_edges:
             sr = paddle.transpose(sr, perm=[1, 0])    # [2, num_edges]
     
             s, l0_penaty = self.linkpred(sr, is_training)
             pred_edge_index, pred_edge_weight = self.construct_pred_edge(edge_index, s) 
-            # print('pred_edge_index:',pred_edge_index)
-            # print('pred_edge_weight:',pred_edge_weight)
-            # print('-----'*10)
 
-            # updated_nodes = self.sign(x, pred_edge_index, edge_feat=pred_edge_weight)
-            # subgraph = pgl.sampling.subgraph(graph, nodes, eid=None, edges=None, with_node_feat=True, with_edge_feat=True)
-            graph = pgl.Graph(
+
+            # 创建训练子图
+            # ============== BUG ==============
+            subgraph_ = pgl.Graph(
+                # num_nodes=graph.num_nodes,
                 node_feat={'node_attr':x},
                 edges=pred_edge_index)
-
-            updated_nodes = self.sign(graph, x, pred_edge_weight)
+            
+           
+            updated_nodes = self.sign(subgraph_, edge_attr=pred_edge_weight)
+        
             num_edges = pred_edge_weight.shape[0]
         else:
-            updated_nodes = self.sign(graph, x, sr)
+            updated_nodes = self.sign(graph)
+            # updated_nodes = self.gin(graph, x)
             l0_penaty = 0
             num_edges = edge_index.shape[1]
+
         # l2_penaty = (updated_nodes * updated_nodes).sum()
         l2_penaty = paddle.multiply(updated_nodes, updated_nodes).sum()
-        # graph_embedding = global_mean_pool(updated_nodes, batch)
-        # print('==='*20)
-        # print('updated_nodes:',updated_nodes)
-        # print('graph.graph_node_id:',graph.graph_node_id)
-        # graph_embedding = self.global_mean_pool(graph,updated_nodes)
-        # print('graph_embedding:',graph_embedding)
-        # out = self.g(graph_embedding)
-        # print('==='*20)
-        
-        updated_nodes = pgl.math.segment_mean(updated_nodes, segment_ids)
-        # print('updated_nodes_:',updated_nodes)
-        out = self.g(updated_nodes)
+
+        # 图平均池化
+        graph_embedding = pgl.math.segment_mean(updated_nodes, segment_ids)
+
+        out = self.g(graph_embedding)
+        out = paddle.clip(out, min=0, max=1)
         return out, l0_penaty, l2_penaty, num_edges 
 
     def construct_pred_edge(self, fe_index, s):
@@ -108,18 +115,13 @@ class L0_SIGN(nn.Layer):
         new_edge_index = [[],[]]
         edge_weight = []
         
-        # print(fe_index)
         s = paddle.squeeze(s)
         
-        # debug
-        # print('-'*20)
         fe_index = paddle.transpose(fe_index, perm=[1, 0]) 
-        # print(fe_index)
-        # print('='*20)
-        # print(s)
 
         sender = paddle.unsqueeze(fe_index[0][s>0], 0)  
         receiver = paddle.unsqueeze(fe_index[1][s>0], 0)
+
         pred_index = paddle.concat([sender, receiver], 0)
         pred_weight = s[s>0]
         pred_index = paddle.transpose(pred_index, perm=[1, 0]) 
@@ -127,6 +129,7 @@ class L0_SIGN(nn.Layer):
 
         return pred_index, pred_weight 
 
+   
 
 
 class SIGN(nn.Layer):
@@ -143,30 +146,33 @@ class SIGN(nn.Layer):
 
     """
 
-    def __init__(self,input_size, hidden_size, aggr_func="mean"):
+    def __init__(self,input_size, hidden_size, pred_edges, aggr_func="mean"):
         super(SIGN, self).__init__()
         assert aggr_func in ["sum", "mean", "max", "min"], \
                 "Only support 'sum', 'mean', 'max', 'min' built-in receive function."
         self.aggr_func = "reduce_%s" % aggr_func
+        self.pred_edges = pred_edges
 
         #construct pairwise modeling network
-        self.lin1 = paddle.nn.Linear(input_size, hidden_size)
-        self.add_sublayer("lin1_g",self.lin1)
-        self.lin2 = paddle.nn.Linear(hidden_size, input_size)
-        self.add_sublayer("lin2_g",self.lin2)
-        self.activation = paddle.nn.ReLU()
-        self.add_sublayer("activation",self.activation)
 
-    def _send_func(self, src_feat, dst_feat, edge_feat):
+        self.lin1 = paddle.nn.Linear(input_size, hidden_size, weight_attr=nn.initializer.KaimingUniform())
+        self.lin2 = paddle.nn.Linear(hidden_size, input_size, weight_attr=nn.initializer.KaimingUniform())
+        self.activation = paddle.nn.ReLU()
+
+        self.add_sublayer("lin1_g", self.lin1)
+        self.add_sublayer("lin2_g", self.lin2)
+        self.add_sublayer("activation", self.activation)
+
+    def _send_func(self, src_feat, dst_feat, edge_feat=None):
         
-        pairwise_analysis = self.lin1(src_feat["src"]*dst_feat["dst"])
+        pairwise_analysis = self.lin1(paddle.multiply(src_feat["src"], dst_feat["dst"]))
         pairwise_analysis = self.activation(pairwise_analysis)
         pairwise_analysis = self.lin2(pairwise_analysis)
 
+       
         if edge_feat != None:
             edge_feat_ = paddle.reshape(edge_feat["e_attr"],[-1,1])
-            # interaction_analysis = pairwise_analysis * edge_feat
-            interaction_analysis = paddle.multiply(pairwise_analysis, edge_feat_)
+            interaction_analysis = paddle.multiply(pairwise_analysis , edge_feat_)
 
         else:
             interaction_analysis = pairwise_analysis
@@ -176,9 +182,10 @@ class SIGN(nn.Layer):
     def _recv_func(self, msg):
 
         return getattr(msg, self.aggr_func)(msg["msg"])
+        # return msg["msg"]
         
 
-    def forward(self, graph, node_feature, edge_attr):
+    def forward(self, graph, edge_attr=None):
         """
         Args:
  
@@ -193,14 +200,19 @@ class SIGN(nn.Layer):
 
         """
 
+        self_feature = graph.node_feat['node_attr']
+
+
         msg = graph.send(
             self._send_func,
-            src_feat={"src": node_feature},
-            dst_feat={"dst": node_feature},
+            src_feat={"src": self_feature.clone()},
+            dst_feat={"dst": self_feature.clone()},
             edge_feat={"e_attr":edge_attr})
+        
         output = graph.recv(reduce_func=self._recv_func, msg=msg)
 
         return output
+
 
 
 class LinkPred(nn.Layer):
@@ -210,16 +222,17 @@ class LinkPred(nn.Layer):
         member variables.
         """
         super(LinkPred, self).__init__()
-        self.linear1 = nn.Linear(D_in, H)
+        self.linear1 = nn.Linear(D_in, H, weight_attr=nn.initializer.KaimingUniform())
         self.add_sublayer("linear1_L",self.linear1)
-        self.linear2 = nn.Linear(H, 1)
+        self.linear2 = nn.Linear(H, 1, weight_attr=nn.initializer.KaimingUniform())
         self.add_sublayer("linear2_L",self.linear2)
         self.relu = nn.ReLU()
         self.add_sublayer("relu_L",self.relu)
         self.dropout = nn.Dropout(p=0.5)
-        # self.add_sublayer("dropout_L",self.dropout)
+        self.add_sublayer("dropout",self.dropout)
+       
         with paddle.no_grad():
-            #self.linear1.weight.set_value(self.linear1.weight + 0.2 )
+            # self.linear1.weight.set_value(self.linear1.weight + 0.2 )
             self.linear2.weight.set_value(self.linear2.weight + 0.2 ) 
 
         self.temp = l0_para[0]      #temprature
@@ -229,9 +242,6 @@ class LinkPred(nn.Layer):
         self.feature_emb_edge = nn.Embedding(n_feature, D_in, 
                                             weight_attr=paddle.ParamAttr(name='emb_weight',
                                                                     initializer=nn.initializer.Normal(mean=0.2,std=0.01)))    #D_in is the dimension size
-        # self.feature_emb_edge = nn.Embedding(n_feature, D_in, 
-        #                                     weight_attr=paddle.ParamAttr(name='emb_weight',
-        #                                                             initializer=nn.initializer.Constant(value=0.2)))
 
     def forward(self, sender_receiver, is_training):
         #construct permutation input
@@ -241,13 +251,17 @@ class LinkPred(nn.Layer):
         # print(sender_emb)  # ok
         # print(receiver_emb)
         # _input = sender_emb * receiver_emb       #element wise product sender and receiver embeddings
-        _input = paddle.multiply(sender_emb, receiver_emb)
+        _input = paddle.multiply(sender_emb , receiver_emb) 
+
         # print(_input)
         #loc = _input.sum(1)
         h_relu = self.dropout(self.relu(self.linear1(_input)))
-        loc = self.linear2(h_relu)
+        # print(h_relu) #############
+        loc = self.linear2(h_relu)  ########
+        # print(loc)
+        # loc = self.relu(loc_)
         if is_training:
-            u = paddle.rand(loc.shape) # ========= DEBUG
+            u = paddle.rand(loc.shape, dtype=loc.dtype) # ========= DEBUG
             u.stop_gradient = False
             logu = paddle.log2(u)
             # print("logu :",logu)
@@ -256,12 +270,17 @@ class LinkPred(nn.Layer):
             sum_log = loc + logu - logmu
             # print("sum_log :",sum_log)
             s = F.sigmoid(sum_log/self.temp)
+            # s = F.relu(sum_log/self.temp)
             s = s * (self.inter_max - self.inter_min) + self.inter_min
             
         else:
             s = F.sigmoid(loc) * (self.inter_max - self.inter_min) + self.inter_min
 
+        # print(s)
         s = paddle.clip(s, min=0, max=1)
+
+        # s_ = paddle.ones_like(s)
+        # s_.stop_gradient = False
 
 
         l0_penaty = F.sigmoid(loc - self.temp * np.log2(-self.inter_min/self.inter_max)).mean()
