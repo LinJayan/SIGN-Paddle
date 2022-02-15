@@ -30,28 +30,8 @@ import pgl
 from pgl.utils.logger import log
 
 
-def fold10_split(dataset, fold_idx=0, seed=0, shuffle=True):
-    """10 fold splitter"""
-    assert 0 <= fold_idx and fold_idx < 10, print(
-        "fold_idx must be from 0 to 10.")
 
-    skf = StratifiedKFold(n_splits=10, shuffle=shuffle, random_state=seed)
-    labels = []
-    for i in range(len(dataset)):
-        g, c = dataset[i]
-        labels.append(c)
-
-    idx_list = []
-    for idx in skf.split(np.zeros(len(labels)), labels):
-        idx_list.append(idx)
-    train_idx, valid_idx = idx_list[fold_idx]
-
-    log.info("train_set : test_set == %d : %d" %
-             (len(train_idx), len(valid_idx)))
-    return Subset(dataset, train_idx), Subset(dataset, valid_idx)
-
-
-def random_split(dataset, split_ratio=0.7, seed=1024, shuffle=True):
+def random_split(dataset, split_ratio=0.7, seed=2019, shuffle=True):
     """random splitter"""
     np.random.seed(seed)
     indices = list(range(len(dataset)))
@@ -144,7 +124,16 @@ class SIGNDataset(Dataset):
                     max_node_index = max(int_list)
 
         if not self.pred_edges:
-            pass
+            # pass
+            edge_list = []
+            sr_list = []    #sender_receiver_list, containing node index
+            for nodes in node_list:
+                edge_l, sr_l = self.construct_full_edge_list(nodes)
+                edge_list.append(edge_l)
+                # sr_list.append(sr_l)
+
+                # print('edge_l:',edge_l)
+                # print('sr_l:',sr_l)
             # edge_list = [[[],[]] for _ in range(data_num)]
             # sr_list = []
             # # handle edges
@@ -162,7 +151,10 @@ class SIGNDataset(Dataset):
                 edge_list.append(edge_l)
                 sr_list.append(sr_l)
 
-        label = self.construct_one_hot_label(label)
+        # print(label[0:10])
+        # print('==========='*10)
+        label = self.construct_one_hot_label(label) # 去掉
+        # print(label[0:10])
 
         return node_list, edge_list, label, sr_list, max_node_index + 1, data_num
 
@@ -264,7 +256,7 @@ def collate_fn(batch_data):
 
 
 if __name__ == "__main__":
-    signdataset = SIGNDataset("./data/", "ml-tag", pred_edges=1)
+    signdataset = SIGNDataset("./data/", "twitter", pred_edges=0)
 
     train_ds,val_ds,test_ds = random_split(signdataset)
 
@@ -277,7 +269,7 @@ if __name__ == "__main__":
     cc = 0
     for batch in loader:
         g, label = batch
-        g = pgl.Graph.batch(g).tensor()
+        # g = pgl.Graph.batch(g).tensor()
         
         print(label)
         print(g.num_graph)
@@ -300,13 +292,8 @@ if __name__ == "__main__":
         #     print(data.edge_feat['edge_attr'])
 
         cc += 1
-        if cc == 3:
+        if cc == 2:
             break
-
-
-
-
-
 
 
 
